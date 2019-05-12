@@ -1,8 +1,8 @@
-var dgram = require('dgram');
-var protocol = require('./protocol');
+const dgram = require('dgram');
+const protocol = require('./protocol');
 const uuid = require('uuid');
 
-var s = dgram.createSocket('udp4');
+const s = dgram.createSocket('udp4');
 
 function Musician(instrument) {
 	this.id = uuid.v4();
@@ -29,21 +29,23 @@ function Musician(instrument) {
 		}
 
 	Musician.prototype.update = function() {
-		var json = {
+		const json = {
 			uuid: this.id,
 			sound: this.sound,
 			timestamp: Date.now(),
 		};
 
-		message = new Buffer(payload);
+		const payload = JSON.stringify(json);
+
+		let message = new Buffer(payload);
 		s.send(message, 0, message.length, protocol.PROTOCOL_PORT, protocol.PROTOCOL_MULTICAST_ADDRESS, function(err, bytes) {
 			console.log("Sending payload: " + payload + " via port " + s.address().port);
 		});
-	}
+	};
 	
 	setInterval(this.update.bind(this), 500);
 }
 
-var instrument = process.argv[2];
+const instrument = process.argv[2];
 
 new Musician(instrument);

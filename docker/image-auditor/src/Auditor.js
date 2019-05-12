@@ -1,16 +1,15 @@
-var protocol = require('./protocol');
-var dgram = require('dgram');
-const moment = require('moment');
+const protocol = require('./protocol');
+const dgram = require('dgram');
 
-const instrument = new Map();
-instrum.set("ti-ta-ti","piano");
-instrum.set("pouet","trumpet");
-instrum.set("trulu","flute");
-instrum.set("gzi-gzi","violin");
-instrum.set("boum-boum","drum");
+const instrumentMap = new Map();
+instrumentMap.set("ti-ta-ti","piano");
+instrumentMap.set("pouet","trumpet");
+instrumentMap.set("trulu","flute");
+instrumentMap.set("gzi-gzi","violin");
+instrumentMap.set("boum-boum","drum");
 
-var map = new Map();
-var timeMap = new Map();
+let map = new Map();
+let timeMap = new Map();
 
 const s = dgram.createSocket('udp4');
 s.bind(protocol.PROTOCOL_PORT, function() {
@@ -22,38 +21,38 @@ s.on('message', function(msg, source) {
 
     const jmessage = JSON.parse(msg);
 	
-    const uid = jmessage['id'];
-    const instrum = instrument.get(jmessage['sound']);
+    const uuid = jmessage['id'];
+    const instrument = instrumentMap.get(jmessage['sound']);
 	const timestamp = jmessage['timestamp'];
 	
     const json = {
-        uuid: uid,
-        instrument: instrum,
+        uuid: uuid,
+        instrument: instrument,
         activeSince: timestamp
     };
 
-    if(!map.has(uid))
-        map.set(uid,json);
+    if(!map.has(uuid))
+        map.set(uuid,json);
 
-    timeMap.set(uid,Date.now());
+    timeMap.set(uuid,Date.now());
 
-	console.log("Data has arrived: " + uid + "  " + instru + ". Source port: " + source.port);
+	console.log("Data has arrived: " + uuid + "  " + instrument + ". Source port: " + source.port);
 });
 
 const net = require('net');
 
 const server = net.createServer(function (socket) {
-    const jsonres = [];
+    const json = [];
 
     map.forEach(function (v, k) {
         const start = timeMap.get(k);
         const end = Date.now();
 
         if (end - start < 5000) {
-            jsonres.push(v);
+            json.push(v);
         }
     });
-    const jsonPretty = JSON.stringify(jsonres, null, 2);
+    const jsonPretty = JSON.stringify(json, null, 2);
 
     socket.write(jsonPretty);
     socket.pipe(socket);
