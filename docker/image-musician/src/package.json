@@ -1,0 +1,13 @@
+{
+  "name": "musician",
+  "version": "1.0.0",
+  "description": "Musician.js on Docker",
+  "author": "Yaonn Rohrbasser <yoann.rohrbasser@heig-vd.ch>",
+  "main": "Musician.js",
+  "scripts": {
+    "start": "node Musician.js"
+  },
+  "dependencies": {
+	"uuid": "^3.3.2"
+  }
+}
