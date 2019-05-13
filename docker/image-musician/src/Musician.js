@@ -16,13 +16,13 @@ function Musician(instrument) {
 	this.sound = instruments.get(instrument);
 
 	Musician.prototype.update = function() {
-		const json = {
+		const info = {
 			uuid: this.id,
 			sound: this.sound,
 			timestamp: Date.now(),
 		};
 
-		const payload = JSON.stringify(json);
+		const payload = JSON.stringify(info);
 
 		s.send(message, 0, message.length, protocol.PROTOCOL_PORT,
 			protocol.PROTOCOL_MULTICAST_ADDRESS, function(err, bytes) {

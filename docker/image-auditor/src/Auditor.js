@@ -1,5 +1,6 @@
 const protocol = require('./protocol');
 const dgram = require('dgram');
+const s = dgram.createSocket('udp4');
 const net = require('net');
 
 const instrumentMap = new Map([
@@ -11,7 +12,7 @@ const instrumentMap = new Map([
 ]);
 
 var musicians = [];
-const s = dgram.createSocket('udp4');
+
 
 s.bind(protocol.PROTOCOL_PORT, function() {
   console.log("Joining multicast group");
