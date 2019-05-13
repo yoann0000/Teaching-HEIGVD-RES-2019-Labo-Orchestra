@@ -1,5 +1,6 @@
 const protocol = require('./protocol');
 const dgram = require('dgram');
+const net = require('net');
 
 const instrumentMap = new Map([
     ['ti-ta-ti', 'piano'],
@@ -9,7 +10,7 @@ const instrumentMap = new Map([
     ['boum-boum', 'drum'],
 ]);
 
-let musicians = [];
+var musicians = [];
 const s = dgram.createSocket('udp4');
 
 s.bind(protocol.PROTOCOL_PORT, function() {
@@ -25,10 +26,10 @@ s.on('message', function(msg, source) {
     const instrument = instrumentMap.get(jmessage.sound);
 	const timestamp = jmessage.timestamp;
 
-    for (let i = 0; i < musicians.length; i++) {
+    for (var i = 0; i < musicians.length; i++) {
         if (musicians[i].uuid === uuid) {
             musicians[i].instrument = instrument;
-            musicians[i].activeSince = activeSince;
+            musicians[i].activeSince = timestamp;
             return;
         }
     }
@@ -41,12 +42,9 @@ s.on('message', function(msg, source) {
     console.log("Data has arrived : " + msg + ". Source port : " + source.port);
 });
 
-const net = require('net');
-
 const server = net.createServer(function(socket) {
     const orchestra = [];
-    for (let i = 0; i < musicians.length; i++) {
-
+    for (var i = 0; i < musicians.length; i++) {
         if (Date.now() - musicians[i].activeSince <= 5000) {
             orchestra.push({
                 uuid: musicians[i].uuid,
