@@ -1,32 +1,19 @@
 const dgram = require('dgram');
 const protocol = require('./protocol');
 const uuid = require('uuid');
-
 const s = dgram.createSocket('udp4');
+
+const INSTRUMENTS = new Map([
+	['piano', 'ti-ta-ti'],
+	['trumpet', 'pouet'],
+	['flute', 'trulu'],
+	['violin', 'gzi-gzi'],
+	['drum', 'boum-boum'],
+]);
 
 function Musician(instrument) {
 	this.id = uuid.v4();
-
-	switch (instrument) {
-		case 'piano':
-			this.sound = 'ti-ta-ti';
-			break;
-		case 'trumpet':
-			this.sound = 'pouet';
-			break;
-		case 'flute':
-			this.sound = 'trulu';
-			break;
-		case 'violin':
-			this.sound = 'gzi-gzi';
-			break;
-		case 'drum':
-			this.sound = 'boum-boum';
-			break;
-		default:
-			console.log('Unknown instrument');
-			process.exit(1);
-		}
+	this.sound = INSTRUMENTS.get(instrument);
 
 	Musician.prototype.update = function() {
 		const json = {
@@ -43,7 +30,7 @@ function Musician(instrument) {
 		});
 	};
 	
-	setInterval(this.update.bind(this), 500);
+	setInterval(this.update.bind(this), 1000);
 }
 
 const instrument = process.argv[2];

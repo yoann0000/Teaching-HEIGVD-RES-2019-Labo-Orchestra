@@ -1,17 +1,17 @@
 const protocol = require('./protocol');
 const dgram = require('dgram');
 
-const instrumentMap = new Map();
-instrumentMap.set("ti-ta-ti","piano");
-instrumentMap.set("pouet","trumpet");
-instrumentMap.set("trulu","flute");
-instrumentMap.set("gzi-gzi","violin");
-instrumentMap.set("boum-boum","drum");
+const instrumentMap = new Map([
+    ['ti-ta-ti', 'piano'],
+    ['pouet', 'trumpet'],
+    ['trulu', 'flute'],
+    ['gzi-gzi', 'violin'],
+    ['boum-boum', 'drum'],
+]);
 
-let map = new Map();
-let timeMap = new Map();
-
+let musicians = [];
 const s = dgram.createSocket('udp4');
+
 s.bind(protocol.PROTOCOL_PORT, function() {
   console.log("Joining multicast group");
   s.addMembership(protocol.PROTOCOL_MULTICAST_ADDRESS);
@@ -21,40 +21,43 @@ s.on('message', function(msg, source) {
 
     const jmessage = JSON.parse(msg);
 	
-    const uuid = jmessage['id'];
-    const instrument = instrumentMap.get(jmessage['sound']);
-	const timestamp = jmessage['timestamp'];
-	
-    const json = {
+    const uuid = jmessage.uuid;
+    const instrument = instrumentMap.get(jmessage.sound);
+	const timestamp = jmessage.timestamp;
+
+    for (let i = 0; i < musicians.length; i++) {
+        if (musicians[i].uuid === uuid) {
+            musicians[i].instrument = instrument;
+            musicians[i].activeSince = activeSince;
+            return;
+        }
+    }
+    musicians.push({
         uuid: uuid,
         instrument: instrument,
-        activeSince: timestamp
-    };
+        activeSince: timestamp,
+    });
 
-    if(!map.has(uuid))
-        map.set(uuid,json);
-
-    timeMap.set(uuid,Date.now());
-
-	console.log("Data has arrived: " + uuid + "  " + instrument + ". Source port: " + source.port);
+    console.log("Data has arrived : " + msg + ". Source port : " + source.port);
 });
 
 const net = require('net');
 
-const server = net.createServer(function (socket) {
-    const json = [];
+const server = net.createServer(function(socket) {
+    const orchestra = [];
+    for (let i = 0; i < musicians.length; i++) {
 
-    map.forEach(function (v, k) {
-        const start = timeMap.get(k);
-        const end = Date.now();
-
-        if (end - start < 5000) {
-            json.push(v);
+        if (Date.now() - musicians[i].activeSince <= 5000) {
+            orchestra.push({
+                uuid: musicians[i].uuid,
+                instrument: musicians[i].instrument,
+                activeSince: new Date(musicians[i].activeSince),
+            });
         }
-    });
-    const jsonPretty = JSON.stringify(json, null, 2);
+    }
+    const payload = JSON.stringify(orchestra);
 
-    socket.write(jsonPretty);
+    socket.write(payload);
     socket.pipe(socket);
     socket.end();
 });
